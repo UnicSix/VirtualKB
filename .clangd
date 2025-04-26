@@ -1,0 +1,7 @@
+CompileFlags:
+  CompilationDatabase: win10-build/       # Search build/ directory for compile_commands.json
+  Add:
+    - "--std=c++20"
+    # - "--target=x86_64-w64-windows-gnu"
+    - "-Wno-known-warning-option"
+  Remove: [-m*, -f*]
