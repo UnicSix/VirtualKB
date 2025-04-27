@@ -2,6 +2,7 @@
 
 #include <SDL3_image/SDL_image.h>
 
+#include <cstdlib>
 #include <string>
 #include <string_view>
 
@@ -43,14 +44,21 @@ KeyboardMedia::KeyboardMedia() {
           m_Animations[0].m_Layout.frame_width,
           m_Animations[0].m_Layout.frame_height);
   for (const auto& entry : fs::directory_iterator(m_TexResDir)) {
+    SDL_Log("Start loading texture");
     const std::string texPath = entry.path().string();
     if (entry.is_regular_file() && entry.path().extension() == ".png") {
       SDL_Log("Loading image %s to texture ", texPath.c_str());
       m_Textures.emplace_back(IMG_LoadTexture(m_Renderer, texPath.c_str()));
     }
+    SDL_Log("File in dir: %s", texPath.c_str());
   }
 
-  return;
+  for (auto& tex : m_Textures) {
+    if (!tex) {
+      SDL_Log("Empty texture");
+    }
+  }
+  SDL_Log("End keyboard instance createion");
 }
 void KeyboardMedia::Update(const double delta) {
   if (m_IsKbPressed) {
@@ -67,9 +75,9 @@ void KeyboardMedia::Update(const double delta) {
                                 &m_Animations.at(m_CurrentAnimID).m_Drect, 0.0f,
                                 NULL, SDL_FLIP_HORIZONTAL)) {
     SDL_Log("Failed to render texture: %s", SDL_GetError());
+    exit(EXIT_FAILURE);
   }
   SDL_RenderPresent(m_Renderer);
-  return;
 }
 
 void KeyboardMedia::KeyboardCallback(const std::wstring_view keyname) {

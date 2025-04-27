@@ -11,9 +11,8 @@ set(CMAKE_CXX_FLAGS
   "-Wall -Wextra -O3 -std=c++20"
 )
 
-# set(SDL_SHARED OFF CACHE BOOL "" FORCE)
-# set(SDL_STATIC ON CACHE BOOL "" FORCE)
-# set(SDL_ttf_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
 
 string(ASCII 27 Esc)
 set(ColourReset "${Esc}[0m")
@@ -95,29 +94,41 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE spdlog
   PRIVATE fmt::fmt
 )
-# Install your executable
+# Install executable
 install(TARGETS virtual_kb DESTINATION bin)
 
-# Install an entire directory
+# Install entire texture directory
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/res/textures/"
         DESTINATION res/textures
 )
 
-# Basic NSIS settings
+# Pack necessary dlls
+set( MINGW_BIN_DIR "C:/msys64/mingw64/bin" )
+set( INSTALL_DLLS
+    libgcc_s_seh-1.dll
+    libwinpthread-1.dll
+    libstdc++-6.dll
+    libfmt-11.dll
+    SDL3.dll
+    SDL3_image.dll
+)
+foreach(DLL ${INSTALL_DLLS})
+    install(FILES "${MINGW_BIN_DIR}/${DLL}" DESTINATION bin)
+endforeach()
+
+# NSIS settings
 set(CPACK_GENERATOR "NSIS")
 set(CPACK_NSIS_PACKAGE_NAME "VirtualKB")
 set(CPACK_NSIS_MODIFY_PATH ON)
 
-# Skip any complex custom NSIS commands for now
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 
 include(CPack)
 
-# Basic configuration
-set(CPACK_PACKAGE_NAME "YourApplication")
-set(CPACK_PACKAGE_VENDOR "Your Company")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Brief description of your app")
-set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_NAME "Virtual KB")
+set(CPACK_PACKAGE_VENDOR "Unic Six")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Pepe reacts upon your keyboard input")
+set(CPACK_PACKAGE_VERSION "1.0.1")
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_VERSION_PATCH "1")
