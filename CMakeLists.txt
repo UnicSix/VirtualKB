@@ -109,6 +109,8 @@ set( INSTALL_DLLS
     libwinpthread-1.dll
     libstdc++-6.dll
     libfmt-11.dll
+    libpng16-16.dll
+    zlib1.dll
     SDL3.dll
     SDL3_image.dll
 )

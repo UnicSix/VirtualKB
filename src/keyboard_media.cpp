@@ -44,7 +44,6 @@ KeyboardMedia::KeyboardMedia() {
           m_Animations[0].m_Layout.frame_width,
           m_Animations[0].m_Layout.frame_height);
   for (const auto& entry : fs::directory_iterator(m_TexResDir)) {
-    SDL_Log("Start loading texture");
     const std::string texPath = entry.path().string();
     if (entry.is_regular_file() && entry.path().extension() == ".png") {
       SDL_Log("Loading image %s to texture ", texPath.c_str());
