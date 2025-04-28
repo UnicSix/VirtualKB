@@ -11,7 +11,14 @@ class KeyboardMedia {
   KeyboardMedia();
   ~KeyboardMedia();
   void Update(const double delta);
+  void OnEvent(const SDL_Event *event);
   void KeyboardCallback(const std::wstring_view keyname);
+
+private:
+  struct MouseWindowOffset {
+    float x;
+    float y;
+  };
 
  private:
   SDL_Window* m_Window = NULL;
@@ -19,7 +26,10 @@ class KeyboardMedia {
   std::vector<SDL_Texture*> m_Textures;
   std::vector<Animation> m_Animations;
   std::filesystem::path m_TexResDir;
-  Uint8 m_CurrentAnimID;
+  Uint8 m_CurrentAnimID = 0;
   double m_Duration = 0.f;
   bool m_IsKbPressed = false;
+  bool m_IsMouseHeld = false;
+  MouseWindowOffset m_Offset;
+
 };

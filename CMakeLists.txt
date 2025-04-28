@@ -115,7 +115,7 @@ set( INSTALL_DLLS
     SDL3_image.dll
 )
 foreach(DLL ${INSTALL_DLLS})
-    install(FILES "${MINGW_BIN_DIR}/${DLL}" DESTINATION bin)
+  install(FILES "${MINGW_BIN_DIR}/${DLL}" DESTINATION bin)
 endforeach()
 
 # NSIS settings

@@ -7,7 +7,10 @@
 #include <string_view>
 
 #include "SDL3/SDL_error.h"
+#include "SDL3/SDL_events.h"
 #include "SDL3/SDL_log.h"
+#include "SDL3/SDL_mouse.h"
+#include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
@@ -23,7 +26,14 @@ KeyboardMedia::KeyboardMedia() {
   if (!m_Window) {
     SDL_Log("Couldn't create SDL window: %s", SDL_GetError());
   }
-  SDL_SetWindowPosition(m_Window, 1700, 900);
+  int width, height;
+  SDL_DisplayID id = SDL_GetPrimaryDisplay();
+  const SDL_DisplayMode *display_mode = SDL_GetCurrentDisplayMode(id);
+  width = display_mode->w;
+  height = display_mode->h;
+  SDL_GetDisplays(0);
+  SDL_SetWindowPosition(m_Window, width*0.9, height*0.85);
+  SDL_Log("Window max size: %d, %d", width, height);
   m_Renderer = SDL_CreateRenderer(m_Window, NULL);
   if (!m_Renderer) {
     SDL_Log("Couldn't create SDL renderer: %s", SDL_GetError());
@@ -52,14 +62,25 @@ KeyboardMedia::KeyboardMedia() {
     SDL_Log("File in dir: %s", texPath.c_str());
   }
 
-  for (auto& tex : m_Textures) {
-    if (!tex) {
-      SDL_Log("Empty texture");
-    }
-  }
   SDL_Log("End keyboard instance createion");
 }
+
 void KeyboardMedia::Update(const double delta) {
+  float mouse_x=0, mouse_y=0;
+  int window_x=0, window_y=0;
+  if (m_Offset.x == 0 && m_Offset.y == 0) {
+    SDL_GetGlobalMouseState(&mouse_x, &mouse_y);
+    SDL_GetWindowPosition(m_Window, &window_x, &window_y);
+    m_Offset.x = mouse_x - window_x;
+    m_Offset.y = mouse_y - window_y;
+  }
+  if (m_IsMouseHeld) {
+    SDL_GetGlobalMouseState(&mouse_x, &mouse_y);
+    SDL_SetWindowPosition(m_Window, mouse_x-m_Offset.x, mouse_y-m_Offset.y);
+  }
+  else {
+    m_Offset = {0, 0};
+  }
   if (m_IsKbPressed) {
     m_Duration += delta;
     if (m_Duration >= state_duration) {
@@ -77,6 +98,15 @@ void KeyboardMedia::Update(const double delta) {
     exit(EXIT_FAILURE);
   }
   SDL_RenderPresent(m_Renderer);
+}
+
+void KeyboardMedia::OnEvent(const SDL_Event *event) {
+  if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+    m_IsMouseHeld = true;
+  }
+  else if (event->type == SDL_EVENT_MOUSE_BUTTON_UP) {
+    m_IsMouseHeld = false;
+  }
 }
 
 void KeyboardMedia::KeyboardCallback(const std::wstring_view keyname) {

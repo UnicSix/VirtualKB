@@ -50,6 +50,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     SDL_Log("Quiting Program");
     return SDL_APP_SUCCESS;
   }
+  kb.OnEvent(event);
   return SDL_APP_CONTINUE;
 }
 
