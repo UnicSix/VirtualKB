@@ -5,8 +5,8 @@ project(virtual_kb VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set( CMAKE_C_COMPILER gcc )
-set( CMAKE_CXX_COMPILER g++ )
+# set( CMAKE_C_COMPILER gcc )
+# set( CMAKE_CXX_COMPILER g++ )
 set(CMAKE_CXX_FLAGS
   "-Wall -Wextra -O3 -std=c++20"
 )
@@ -18,6 +18,15 @@ string(ASCII 27 Esc)
 set(ColourReset "${Esc}[0m")
 set(Blue        "${Esc}[34m")
 set(Magenta     "${Esc}[35m")
+
+file(
+  DOWNLOAD
+  https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.40.8/CPM.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake
+  EXPECTED_HASH SHA256=78ba32abdf798bc616bab7c73aac32a17bbd7b06ad9e26a6add69de8f3ae4791
+)
+include(${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
+CPMAddPackage("gh:nlohmann/json#55f9368")
 
 if( NOT WIN32)
   message(FATAL_ERROR "This project only supports Windows platform")
@@ -53,7 +62,15 @@ message(STATUS "${Magenta}SDL3_image Version: ${ColourReset}${SDL3_image_VERSION
 message(STATUS "${Blue}SDL3 Dir: ${ColourReset}${SDL3_DIR}")
 message(STATUS "${Blue}SDL3_ttf Dir: ${ColourReset}${SDL3_ttf_DIR}")
 message(STATUS "${Blue}SDL3_image Dir: ${ColourReset}${SDL3_image_DIR}")
-find_package(nlohmann_json REQUIRED)
+
+# find_package(nlohmann_json REQUIRED)
+# if (nlohmann_json_FOUND)
+#   message( STATUS "nlohmann json Found")
+#   message( STATUS "nlohmann json include dir : ${nlohmann_json_DIR}")
+# else()
+#   message( STATUS "nlohmann json Not Found")
+# endif()
+
 
 # Set source directory
 set( PROJECT_SRC src/*.cpp )

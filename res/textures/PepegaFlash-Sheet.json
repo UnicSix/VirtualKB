@@ -1,0 +1,10 @@
+{
+  "row": 1,
+  "col": 32,
+  "frame_count": 32,
+  "frame_width": 128.0,
+  "frame_height": 128.0,
+  "padding": 0,
+  "anim_count": 1,
+  "delay": 75
+}

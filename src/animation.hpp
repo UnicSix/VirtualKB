@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL3_image/SDL_image.h>
+#include <nlohmann/json.hpp>
 
 #include <string>
 
@@ -19,11 +20,10 @@ class Animation {
  public:
   Animation();
   Animation(const SheetLayout layout);
+  Animation(const nlohmann::json *layout_data);
   ~Animation();
 
   void NextFrame(const double delta);
-  bool LoadAnimationConfig(std::string_view &configPath);
-  bool GenAnimationConfig(std::string_view &configPath);
   bool Play(const std::string anim, const double delta);
 
   // assuming all frames' size are the same
