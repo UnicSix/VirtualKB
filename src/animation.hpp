@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include <string>
+#include <unordered_set>
 
 #include "SDL3/SDL_rect.h"
 
@@ -24,9 +25,9 @@ class Animation {
   ~Animation();
 
   void NextFrame(const double delta);
+  void ResetAnimation();
   bool Play(const std::string anim, const double delta);
 
-  // assuming all frames' size are the same
   SDL_FRect m_Srect;
   SDL_FRect m_Drect;
   SheetLayout m_Layout;

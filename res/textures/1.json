@@ -6,7 +6,8 @@
   "frame_height": 132.0,
   "padding": 0,
   "anim_count": 1,
-  "delay": 0
+  "delay": 0,
+  "name": "lmb held"
 }
 
 

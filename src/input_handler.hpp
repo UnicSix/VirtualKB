@@ -1,3 +1,4 @@
+#include <coroutine>
 #include <cstdio>
 #include <functional>
 
@@ -10,7 +11,9 @@
 class InputHandler {
  private:
   static HHOOK kb_hook;
-  static std::function<void(LPWSTR)> callback;
+  static HHOOK mouse_hook;
+  static std::function<void(LPWSTR)> keyboard_callback;
+  static std::function<void(int)> mouse_callback;
   static LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam,
                                        LPARAM lParam) {
     if (nCode >= 0 && wParam == WM_KEYDOWN) {
@@ -21,8 +24,8 @@ class InputHandler {
       int result =
           ToUnicodeEx(kbstruct->vkCode, kbstruct->scanCode, kbstate, keyname,
                       _countof(keyname), kbstruct->flags, NULL);
-      if (callback && result > 0) {
-        callback(keyname);
+      if (keyboard_callback && result > 0) {
+        keyboard_callback(keyname);
       } else {
         spdlog::info("Fail to get keyname");
       }
@@ -30,12 +33,29 @@ class InputHandler {
     return CallNextHookEx(kb_hook, nCode, wParam, lParam);
   }
 
+  static LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode >= 0) {
+      if (wParam == WM_MOUSEMOVE) {
+        spdlog::info("Mouse Moving");
+        mouse_callback(0);
+      } else if (wParam == WM_LBUTTONDOWN || wParam == WM_LBUTTONUP) {
+        spdlog::info("LMB");
+        mouse_callback(1);
+      }
+    }
+    return CallNextHookEx(mouse_hook, nCode, wParam, lParam);
+  }
+
  public:
-  static bool Initialize(std::function<void(LPWSTR)> key_callback) {
-    callback = key_callback;
+  static bool Initialize(std::function<void(LPWSTR)> kb_callback,
+                         std::function<void(int)> ms_callback) {
+    keyboard_callback = kb_callback;
+    mouse_callback = ms_callback;
     kb_hook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc,
                                GetModuleHandle(NULL), 0);
-    return kb_hook != NULL;
+    mouse_hook =
+        SetWindowsHookEx(WH_MOUSE_LL, MouseProc, GetModuleHandle(NULL), 0);
+    return kb_hook != NULL && mouse_hook != NULL;
   }
 
   static void Cleanup() {

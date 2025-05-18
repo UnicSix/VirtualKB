@@ -8,7 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # set( CMAKE_C_COMPILER gcc )
 # set( CMAKE_CXX_COMPILER g++ )
 set(CMAKE_CXX_FLAGS
-  "-Wall -Wextra -O3 -std=c++20"
+  "-Wall -Wextra -O0 -std=c++20"
 )
 
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
@@ -26,7 +26,6 @@ file(
   EXPECTED_HASH SHA256=78ba32abdf798bc616bab7c73aac32a17bbd7b06ad9e26a6add69de8f3ae4791
 )
 include(${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
-CPMAddPackage("gh:nlohmann/json#55f9368")
 
 if( NOT WIN32)
   message(FATAL_ERROR "This project only supports Windows platform")
@@ -54,7 +53,7 @@ else()
 endif()
 
 find_package(SDL3 REQUIRED SDL3-static)
-find_package(SDL3_ttf REQUIRED SDL3_ttf-static)
+#find_package(SDL3_ttf REQUIRED SDL3_ttf-static)
 find_package(SDL3_image REQUIRED SDL3_image-static)
 message(STATUS "${Magenta}SDL3 Version: ${ColourReset}${SDL3_VERSION}")
 message(STATUS "${Magenta}SDL3_ttf Version: ${ColourReset}${SDL3_ttf_VERSION}")
@@ -63,23 +62,27 @@ message(STATUS "${Blue}SDL3 Dir: ${ColourReset}${SDL3_DIR}")
 message(STATUS "${Blue}SDL3_ttf Dir: ${ColourReset}${SDL3_ttf_DIR}")
 message(STATUS "${Blue}SDL3_image Dir: ${ColourReset}${SDL3_image_DIR}")
 
-# find_package(nlohmann_json REQUIRED)
-# if (nlohmann_json_FOUND)
-#   message( STATUS "nlohmann json Found")
-#   message( STATUS "nlohmann json include dir : ${nlohmann_json_DIR}")
-# else()
-#   message( STATUS "nlohmann json Not Found")
-# endif()
-
+find_package(nlohmann_json REQUIRED)
+if (nlohmann_json_FOUND)
+  message( STATUS "nlohmann json Found")
+  message( STATUS "nlohmann json include dir : ${nlohmann_json_DIR}")
+else()
+  message( STATUS "nlohmann json Not Found, add package with CPM")
+  CPMAddPackage("gh:nlohmann/json#55f9368")
+endif()
 
 # Set source directory
 set( PROJECT_SRC src/*.cpp )
+message( STATUS "${Magenta}src: ${PROJECT_SRC}${ColourReset}")
 
 # Collect source files
 file( GLOB_RECURSE PROJECT_SRC "src/*.cpp" )
 
 # Add executable
-add_executable(${PROJECT_NAME} ${PROJECT_SRC})
+add_executable(${PROJECT_NAME} 
+  ${PROJECT_SRC}
+  "src/app.rc"
+)
 
 if(WIN32)
 if(MSVC)
@@ -105,7 +108,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE ${USER32_LIB}
   PRIVATE ${GDI32_LIB}
   PRIVATE SDL3::SDL3
-  PRIVATE SDL3_ttf::SDL3_ttf
+#  PRIVATE SDL3_ttf::SDL3_ttf
   PRIVATE SDL3_image::SDL3_image
   PRIVATE nlohmann_json::nlohmann_json
   PRIVATE spdlog

@@ -21,7 +21,9 @@
 static KeyboardMedia kb;
 
 HHOOK InputHandler::kb_hook = NULL;
-std::function<void(LPWSTR)> InputHandler::callback = nullptr;
+HHOOK InputHandler::mouse_hook = NULL;
+std::function<void(LPWSTR)> InputHandler::keyboard_callback = nullptr;
+std::function<void(int)> InputHandler::mouse_callback = nullptr;
 
 static Uint64 now = 0, last = 0;
 
@@ -33,9 +35,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_APP_FAILURE;
   }
 
-  if (!InputHandler::Initialize([](const std::wstring_view keyname) {
-        kb.KeyboardCallback(keyname);
-      })) {
+  if (!InputHandler::Initialize(
+          [](const std::wstring_view keyname) { kb.KeyboardCallback(keyname); },
+          [](const int mouse_action) { kb.MouseCallback(mouse_action); })) {
     SDL_Log("Failed to initialize hook");
     return SDL_APP_FAILURE;
   }

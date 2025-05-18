@@ -1,0 +1,5 @@
+.idea
+build/_deps
+win10-build
+win10-release
+build

@@ -3,7 +3,6 @@
 #include <SDL3_image/SDL_image.h>
 #include <spdlog/spdlog.h>
 
-#include <cstdio>
 #include <nlohmann/json_fwd.hpp>
 #include <stdexcept>
 
@@ -58,4 +57,8 @@ void Animation::NextFrame(const double delta) {
     m_CurFcnt = (m_CurFcnt + 1) % (m_Layout.row * m_Layout.col);
     m_FrameDuration = 0;
   }
+}
+
+void Animation::ResetAnimation() {
+  m_CurFcnt = 0;
 }
