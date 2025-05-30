@@ -1,12 +1,12 @@
 {
-  "row": 2,
-  "col": 3,
-  "frame_count": 6,
+  "row": 3,
+  "col": 4,
+  "frame_count": 11,
   "frame_width": 128.0,
   "frame_height": 128.0,
   "padding": 0,
   "anim_count": 1,
-  "delay": 25,
-  "name": "dragging"
+  "delay": 30,
+  "name": "typing"
 }
 

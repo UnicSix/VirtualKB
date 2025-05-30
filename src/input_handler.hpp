@@ -36,7 +36,7 @@ class InputHandler {
   static LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode >= 0) {
       if (wParam == WM_MOUSEMOVE) {
-        spdlog::info("Mouse Moving");
+        // spdlog::info("Mouse Moving");
         mouse_callback(0);
       } else if (wParam == WM_LBUTTONDOWN || wParam == WM_LBUTTONUP) {
         mouse_callback(1);

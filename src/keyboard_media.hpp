@@ -17,17 +17,16 @@ constexpr double  state_duration       = 0.75;
 constexpr uint8_t sheet_file_count     = 5;
 constexpr int     media_state_max_size = 8;
 
-namespace MediaStates {
-constexpr std::bitset<media_state_max_size> IDLE        = {0b0000'0000};
-constexpr std::bitset<media_state_max_size> TYPING      = {0b0000'0001};
-constexpr std::bitset<media_state_max_size> RMB_HOLDING = {0b0000'0010};
-constexpr std::bitset<media_state_max_size> LMB_HOLDING = {0b0000'0100};
-constexpr std::bitset<media_state_max_size> DRAGGING     = {0b0000'1000};
-
-constexpr std::bitset<media_state_max_size> WHEEL_CLICK = {0b0001'0000};
-constexpr std::bitset<media_state_max_size> INTRO       = {0b0010'0000};
-constexpr std::bitset<media_state_max_size> OUTRO       = {0b0100'0000};
-}  // namespace MediaStates
+enum class MediaStates {
+  IDLE,
+  TYPING,
+  RMB_HOLDING,
+  LMB_HOLDING,
+  DRAGGING,
+  WHEEL_CLICK,
+  INTRO,
+  OUTRO,
+};
 
 class KeyboardMedia {
  public:
@@ -50,11 +49,11 @@ class KeyboardMedia {
   SDL_Renderer*                                  m_Renderer = NULL;
   std::array<SDL_Texture*, media_state_max_size> m_Textures;
   std::array<Animation, media_state_max_size>    m_Animations;
-  std::bitset<media_state_max_size>              m_MediaState = {};
-  std::filesystem::path                          m_TexResDir;
-  Uint8                                          m_CurrentAnimID = 2;
-  double                                         m_Duration      = 0.f;
-  MouseWindowOffset                              m_Offset        = {};
+  MediaStates           m_MediaState = MediaStates::IDLE;
+  std::filesystem::path m_TexResDir;
+  Uint8                 m_CurrentAnimID = 2;
+  double                m_Duration      = 0.f;
+  MouseWindowOffset     m_Offset        = {};
 
  public:
   inline Uint8 Name2AnimationID(const std::string_view name) {
@@ -73,8 +72,8 @@ class KeyboardMedia {
     } else if (name.compare("typing") == 0) {
       return 6;
     } else {
-      spdlog::error("Undefined Animation Name: {}", name);
-      std::exit(EXIT_FAILURE);
+      spdlog::error("Undefined Animation Name: {}, replace outro", name);
+      return 1;
     }
   }
 };

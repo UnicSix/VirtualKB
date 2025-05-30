@@ -27,7 +27,7 @@ Animation::Animation(const SheetLayout layout) {
   m_CurFcnt       = 0;
   m_Delay         = 150;
   m_FrameDuration = 0;
-  m_Flipped       = true;
+  m_Flipped       = false;
 }
 
 Animation::Animation(const nlohmann::json *layout_data) {
@@ -61,12 +61,15 @@ Animation::Animation(const nlohmann::json *layout_data) {
   m_Drect         = {0.0f, 0.0f, m_Layout.frame_width, m_Layout.frame_height};
   m_CurFcnt       = 0;
   m_FrameDuration = 0;
-  m_Flipped       = true;
+  m_Flipped       = false;
 }
 
 Animation::~Animation() {}
 
 void Animation::NextFrame(const double delta) {
+  if (m_CurFcnt >= m_Layout.frame_count) {
+    m_CurFcnt = 0;
+  }
   if (m_Delay >= m_FrameDuration) {
     m_FrameDuration += static_cast<int>(delta * 1000);
   } else {
