@@ -65,12 +65,14 @@ class KeyboardMedia {
       return 2;
     } else if (name.compare("dragging") == 0) {
       return 3;
-    } else if (name.compare("lmb held") == 0) {
+    } else if (name.compare("lmb holding") == 0) {
       return 4;
     } else if (name.compare("wheel clicked") == 0) {
       return 5;
     } else if (name.compare("typing") == 0) {
       return 6;
+    } else if (name.compare("rmb holding")) {
+      return 7;
     } else {
       spdlog::error("Undefined Animation Name: {}, replace outro", name);
       return 1;

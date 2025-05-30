@@ -29,7 +29,7 @@ KeyboardMedia::KeyboardMedia() {
   using json   = nlohmann::json;
   m_Window     = SDL_CreateWindow("Pepe", 132, 132,
                                   SDL_WINDOW_BORDERLESS | SDL_WINDOW_ALWAYS_ON_TOP |
-                                      SDL_WINDOW_TRANSPARENT);
+                                      SDL_WINDOW_TRANSPARENT | SDL_WINDOW_UTILITY);
   if (!m_Window) {
     SDL_Log("Couldn't create SDL window: %s", SDL_GetError());
   }
@@ -119,6 +119,8 @@ void KeyboardMedia::Update(const double delta) {
                             mouse_y - m_Offset.y);
       m_CurrentAnimID = Name2AnimationID("dragging");
       break;
+    case MediaStates::LMB_HOLDING:
+      break;
     default:
       m_CurrentAnimID = Name2AnimationID("idle");
       m_Offset        = {0, 0};
@@ -139,9 +141,12 @@ void KeyboardMedia::Update(const double delta) {
 }
 
 void KeyboardMedia::OnEvent(const SDL_Event* event) {
-  if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+  if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == 1) {
     m_MediaState = MediaStates::DRAGGING;
   } else if (event->type == SDL_EVENT_MOUSE_BUTTON_UP) {
+    m_MediaState = MediaStates::IDLE;
+  }
+  if (event->type == SDL_EVENT_WINDOW_FOCUS_GAINED) {
     m_MediaState = MediaStates::IDLE;
   }
 }
@@ -154,7 +159,19 @@ void KeyboardMedia::KeyboardCallback(const std::wstring_view keyname) {
 }
 
 void KeyboardMedia::MouseCallback(const int mouse_action) {
-  // SDL_Log("Mouse Action: %d", mouse_action);
+  if ((SDL_GetWindowFlags(m_Window) & SDL_WINDOW_MOUSE_FOCUS) != 0) {
+    return;
+  }
+  if (mouse_action == 1) {
+    m_MediaState = m_MediaState == MediaStates::LMB_HOLDING
+                       ? MediaStates::IDLE
+                       : MediaStates::LMB_HOLDING;
+  }
+  if (m_MediaState == MediaStates::LMB_HOLDING) {
+    m_CurrentAnimID = Name2AnimationID("lmb holding");
+  } else {
+    m_CurrentAnimID = Name2AnimationID("idle");
+  }
 }
 
 KeyboardMedia::~KeyboardMedia() {
