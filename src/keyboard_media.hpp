@@ -1,6 +1,7 @@
 #include <SDL3/SDL_stdinc.h>
 #include <spdlog/spdlog.h>
 
+#include <bitset>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
@@ -12,26 +13,30 @@
 #include "SDL3/SDL_render.h"
 #include "animation.hpp"
 
-constexpr double state_duration = 0.75;
-constexpr uint8_t sheet_file_count = 5;
+constexpr double  state_duration       = 0.75;
+constexpr uint8_t sheet_file_count     = 5;
+constexpr int     media_state_max_size = 8;
 
-enum AnimationName {
-  INTRO = 0,
-  OUTRO = 1,
-  IDLE = 2,
-  DRAGGING = 3,
-  LMB_HELD = 4,
-  WHEEL_CLICKED = 5,
-};
+namespace MediaStates {
+constexpr std::bitset<media_state_max_size> IDLE        = {0b0000'0000};
+constexpr std::bitset<media_state_max_size> TYPING      = {0b0000'0001};
+constexpr std::bitset<media_state_max_size> RMB_HOLDING = {0b0000'0010};
+constexpr std::bitset<media_state_max_size> LMB_HOLDING = {0b0000'0100};
+constexpr std::bitset<media_state_max_size> DRAGGING     = {0b0000'1000};
+
+constexpr std::bitset<media_state_max_size> WHEEL_CLICK = {0b0001'0000};
+constexpr std::bitset<media_state_max_size> INTRO       = {0b0010'0000};
+constexpr std::bitset<media_state_max_size> OUTRO       = {0b0100'0000};
+}  // namespace MediaStates
 
 class KeyboardMedia {
  public:
   KeyboardMedia();
   ~KeyboardMedia();
-  void Update(const double delta);
-  void OnEvent(const SDL_Event* event);
-  void KeyboardCallback(const std::wstring_view keyname);
-  void MouseCallback(const int mouse_action);
+  void        Update(const double delta);
+  void        OnEvent(const SDL_Event* event);
+  void        KeyboardCallback(const std::wstring_view keyname);
+  void        MouseCallback(const int mouse_action);
   SheetLayout LoadAnimationConfig(std::string_view& configPath);
 
  private:
@@ -41,18 +46,15 @@ class KeyboardMedia {
   };
 
  private:
-  SDL_Window* m_Window = NULL;
-  SDL_Renderer* m_Renderer = NULL;
-  std::vector<SDL_Texture*> m_Textures;
-  std::vector<Animation> m_Animations;
-  std::unordered_map<Uint8, Animation> m_AnimationMap;
-  std::unordered_map<Uint8, SDL_Texture*> m_TextureMap;
-  std::filesystem::path m_TexResDir;
-  Uint8 m_CurrentAnimID = 2;
-  double m_Duration = 0.f;
-  bool m_IsKbPressed = false;
-  bool m_IsMouseHeld = false;
-  MouseWindowOffset m_Offset;
+  SDL_Window*                                    m_Window   = NULL;
+  SDL_Renderer*                                  m_Renderer = NULL;
+  std::array<SDL_Texture*, media_state_max_size> m_Textures;
+  std::array<Animation, media_state_max_size>    m_Animations;
+  std::bitset<media_state_max_size>              m_MediaState = {};
+  std::filesystem::path                          m_TexResDir;
+  Uint8                                          m_CurrentAnimID = 2;
+  double                                         m_Duration      = 0.f;
+  MouseWindowOffset                              m_Offset        = {};
 
  public:
   inline Uint8 Name2AnimationID(const std::string_view name) {

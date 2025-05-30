@@ -15,7 +15,6 @@
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_log.h"
 #include "SDL3/SDL_mouse.h"
-#include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
@@ -47,11 +46,8 @@ KeyboardMedia::KeyboardMedia() {
   }
 
   // load resources
+  m_Textures.fill(nullptr);
   m_TexResDir = "../res/textures/";
-  m_Textures.reserve(sheet_file_count);
-  m_Animations.reserve(sheet_file_count);
-  m_AnimationMap.reserve(sheet_file_count);
-  m_TextureMap.reserve(sheet_file_count);
   m_Offset = {0, 0};
   auto get_val = [&](const char* key, const json* layout_data) {
     if (!layout_data->contains(key)) {
@@ -62,11 +58,6 @@ KeyboardMedia::KeyboardMedia() {
   for (const auto& entry : fs::directory_iterator(m_TexResDir)) {
     const std::string tex_path = entry.path().string();
     if (entry.is_regular_file() && entry.path().extension() == ".png") {
-      // load image to texture
-      SDL_Log("Loading image %s to texture ", tex_path.c_str());
-      m_Textures.emplace_back(IMG_LoadTexture(m_Renderer, tex_path.c_str()));
-
-      // load texture config file
       std::string config_path = tex_path;
       config_path.replace(config_path.rfind("png"), 4, "json");
       SDL_Log("Read Config %s", config_path.c_str());
@@ -85,23 +76,19 @@ KeyboardMedia::KeyboardMedia() {
         SDL_Log("JSON parse error %s", err.what());
       }
       try {
-        m_Animations.emplace_back(Animation(&jf));
-        SDL_Log(
-            "Current Animation ID: %d",
-            Name2AnimationID(static_cast<std::string>(get_val("name", &jf))));
-        m_AnimationMap.emplace(
-            Name2AnimationID(static_cast<std::string>(get_val("name", &jf))),
-            Animation(&jf));
-        m_TextureMap.emplace(
-            Name2AnimationID(static_cast<std::string>(get_val("name", &jf))),
-            IMG_LoadTexture(m_Renderer, tex_path.c_str()));
+        m_Textures.at(
+            Name2AnimationID(static_cast<std::string>(get_val("name", &jf)))) =
+            IMG_LoadTexture(m_Renderer, tex_path.c_str());
+        m_Animations.at(Name2AnimationID(
+            static_cast<std::string>(get_val("name", &jf)))) = Animation(&jf);
       } catch (const json::parse_error& err) {
-        SDL_Log("Json Exception: %s", err.what());
+        SDL_Log("Json parse error %s", err.what());
       }
       layout_config.close();
     }
   }
 
+  m_MediaState = MediaStates::IDLE;
   SDL_Log("End keyboard instance creation");
 }
 
@@ -114,44 +101,46 @@ void KeyboardMedia::Update(const double delta) {
     m_Offset.x = mouse_x - window_x;
     m_Offset.y = mouse_y - window_y;
   }
-  if (m_IsMouseHeld) {
+  if (m_MediaState == MediaStates::DRAGGING) {
     SDL_GetGlobalMouseState(&mouse_x, &mouse_y);
     SDL_SetWindowPosition(m_Window, mouse_x - m_Offset.x, mouse_y - m_Offset.y);
+    m_CurrentAnimID = Name2AnimationID("dragging");
   } else {
+    m_CurrentAnimID = Name2AnimationID("idle");
     m_Offset = {0, 0};
   }
-  if (m_IsKbPressed) {
+  if (m_MediaState == MediaStates::TYPING) {
     m_Duration += delta;
     if (m_Duration >= state_duration) {
       m_Duration = 0;
-      m_AnimationMap.at(m_CurrentAnimID).ResetAnimation();
+      m_Animations.at(m_CurrentAnimID).ResetAnimation();
       m_CurrentAnimID = Name2AnimationID("idle");
-      m_IsKbPressed = false;
+      m_MediaState &= ~m_MediaState;
     }
   }
   SDL_RenderClear(m_Renderer);
-  if (!SDL_RenderTextureRotated(m_Renderer, m_TextureMap.at(m_CurrentAnimID),
-                                &m_AnimationMap.at(m_CurrentAnimID).m_Srect,
-                                &m_AnimationMap.at(m_CurrentAnimID).m_Drect,
+  if (!SDL_RenderTextureRotated(m_Renderer, m_Textures.at(m_CurrentAnimID),
+                                &m_Animations.at(m_CurrentAnimID).m_Srect,
+                                &m_Animations.at(m_CurrentAnimID).m_Drect,
                                 0.0f, NULL, SDL_FLIP_HORIZONTAL)) {
     SDL_Log("Failed to render texture: %s", SDL_GetError());
     exit(EXIT_FAILURE);
   }
   SDL_RenderPresent(m_Renderer);
-  m_AnimationMap.at(m_CurrentAnimID).NextFrame(delta);
+  m_Animations.at(m_CurrentAnimID).NextFrame(delta);
 }
 
 void KeyboardMedia::OnEvent(const SDL_Event* event) {
   if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-    m_IsMouseHeld = true;
+    m_MediaState = MediaStates::DRAGGING;
   } else if (event->type == SDL_EVENT_MOUSE_BUTTON_UP) {
-    m_IsMouseHeld = false;
+    m_MediaState &= ~m_MediaState;
   }
 }
 
 void KeyboardMedia::KeyboardCallback(const std::wstring_view keyname) {
   SDL_Log("Successfully capture the kb callback: \"%ls\"", keyname.data());
-  m_IsKbPressed = true;
+  m_MediaState = MediaStates::TYPING;
   m_CurrentAnimID = Name2AnimationID("typing");
   m_Duration = 0.f;
 }
@@ -166,7 +155,6 @@ KeyboardMedia::~KeyboardMedia() {
       SDL_DestroyTexture(tex);
     }
   }
-  m_Textures.clear();
   SDL_DestroyRenderer(m_Renderer);
   SDL_DestroyWindow(m_Window);
   return;

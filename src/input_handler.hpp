@@ -39,7 +39,6 @@ class InputHandler {
         spdlog::info("Mouse Moving");
         mouse_callback(0);
       } else if (wParam == WM_LBUTTONDOWN || wParam == WM_LBUTTONUP) {
-        spdlog::info("LMB");
         mouse_callback(1);
       }
     }

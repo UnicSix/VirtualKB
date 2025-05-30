@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <iostream>
 #include <string_view>
 
 #include "SDL3/SDL_events.h"
